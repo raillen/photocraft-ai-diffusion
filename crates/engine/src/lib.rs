@@ -33,6 +33,7 @@ pub mod comps_cmds;
 pub mod contour_lib_cmds;
 mod crop_fill;
 pub mod cutout_cmds;
+pub mod diffusion_cmds;
 pub mod display_color;
 pub mod distort_cmds;
 pub mod doc_path;
@@ -548,6 +549,8 @@ pub struct Session {
     /// Documents a background open decoded but held back until the user answers the profile
     /// prompt ([`ColorState::open_question`](color_cmds::ColorState::open_question)): `(id,
     /// document, source read-only)`. The shell takes them with [`Session::take_held_open`].
+    /// Generative AI diffusion history and preview state.
+    pub diffusion: diffusion_cmds::State,
     held_opens: Vec<(u64, Document, bool)>,
     next_held_open: u64,
 }
@@ -571,6 +574,10 @@ impl Session {
 
     pub fn documents(&self) -> &[DocState] {
         &self.docs
+    }
+    /// PNG preview bytes for a generative diffusion job output.
+    pub fn preview(&self, job: u64, index: usize) -> Option<&[u8]> {
+        self.diffusion.preview(job, index)
     }
     pub fn active_index(&self) -> Option<usize> {
         self.active

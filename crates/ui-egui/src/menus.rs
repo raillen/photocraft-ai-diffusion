@@ -40,6 +40,7 @@ pub(crate) fn panel_alias(id: &str) -> Option<&'static str> {
         "options" => "window.toggle.options",
         "brushSettings" => "window.toggle.brushSettings",
         "brushes" => "window.toggle.brushes",
+        "diffusion" | "aiDiffusion" => "window.toggle.diffusion",
         _ => return None,
     })
 }
@@ -662,6 +663,7 @@ pub(crate) fn invoke_unguarded(app: &mut PhotocraftApp, ctx: &egui::Context, id:
                 "brushSettings" => &mut p.brush_settings,
                 "brushes" => &mut p.brushes,
                 "dock" => &mut p.dock,
+                "diffusion" => &mut p.diffusion,
                 _ => return Err(format!("unknown panel in {t}")),
             };
             *slot = !*slot;
@@ -871,6 +873,7 @@ fn checked(app: &PhotocraftApp, id: &str) -> Option<bool> {
         "window.toggle.options" => p.options_bar,
         "window.toggle.brushSettings" => p.brush_settings,
         "window.toggle.brushes" => p.brushes,
+        "window.toggle.diffusion" => p.diffusion,
         _ => return None,
     })
 }

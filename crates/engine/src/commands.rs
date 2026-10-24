@@ -1586,6 +1586,7 @@ fn build() -> Vec<CommandSpec> {
     v.extend(crate::timeline_cmds::specs());
     v.extend(crate::video_cmds::specs());
     v.extend(crate::jobs::specs());
+    v.extend(crate::diffusion_cmds::specs());
     v.extend(crate::wia_cmds::specs());
     v.extend(crate::rasterize_style_cmds::specs());
     v.extend(crate::variables_cmds::specs());

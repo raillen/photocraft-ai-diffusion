@@ -488,6 +488,9 @@ pub struct Panels {
     /// floating window rather than a modal so the canvas stays usable while a gradient is edited.
     #[serde(default)]
     pub gradient_editor: bool,
+    /// Window › AI Diffusion: floating native diffusion panel.
+    #[serde(default)]
+    pub diffusion: bool,
 }
 
 impl Default for Panels {
@@ -511,6 +514,7 @@ impl Default for Panels {
             rail: true,
             menu_bar: true,
             gradient_editor: false,
+            diffusion: false,
         }
     }
 }
@@ -1619,6 +1623,9 @@ pub struct UiState {
     pub camera_raw_scope: CameraRawScopeState,
     #[serde(default)]
     pub camera_raw_preview: CameraRawPreviewState,
+    /// AI Diffusion panel parameters, presets, and connection settings.
+    #[serde(default)]
+    pub diffusion: crate::diffusion_ui::DiffusionUiState,
 }
 
 impl Default for UiState {
@@ -1715,6 +1722,7 @@ impl Default for UiState {
             chrome: Default::default(),
             camera_raw_scope: Default::default(),
             camera_raw_preview: Default::default(),
+            diffusion: Default::default(),
         }
     }
 }

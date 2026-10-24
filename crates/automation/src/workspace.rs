@@ -259,6 +259,13 @@ fn file_error(operation: &str, path: &str, error: std::io::Error) -> AutomationE
 /// directory capabilities. Automation must use `doc.open`, `doc.save` and
 /// `doc.render` for file effects until those commands are migrated.
 pub fn authorize_engine_command(id: &str, params: &Value) -> Result<(), AutomationError> {
+    // A workspace capability grants filesystem access, not network access or permission to
+    // execute arbitrary nodes on another machine. Trusted-local sessions opt in separately.
+    if matches!(id, "ai.diffusion.catalog" | "ai.diffusion.generate") {
+        return Err(AutomationError::BadRequest(format!(
+            "automation command `{id}` requires trusted-local network access; workspace filesystem capabilities do not grant it"
+        )));
+    }
     let safe_file_command = matches!(
         id,
         "file.new"

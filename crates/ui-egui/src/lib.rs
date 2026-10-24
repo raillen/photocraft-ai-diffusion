@@ -81,6 +81,7 @@ pub mod delete_layer_prompt;
 pub mod dialog_alt_reset;
 pub mod dialog_blend_ui;
 pub mod dialogs;
+pub mod diffusion_ui;
 pub mod direct_select;
 pub mod direction;
 pub mod discard_ui;
@@ -2475,6 +2476,7 @@ impl eframe::App for PhotocraftApp {
         });
         panels::properties_window(self, &ctx);
         brush_panel::window(self, &ctx);
+        diffusion_ui::window(self, &ctx);
         preset_panels::windows(self, &ctx);
         gradient_ui::editor_window(self, &ctx);
         type_panels_ui::windows(self, &ctx);

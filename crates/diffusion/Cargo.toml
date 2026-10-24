@@ -1,0 +1,19 @@
+[package]
+name = "photocraft-diffusion"
+description = "Clean-room stock ComfyUI API workflow builder and bounded HTTP client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+url = "2.5"
+ureq = { version = "3.4", default-features = false, features = ["rustls", "platform-verifier"] }

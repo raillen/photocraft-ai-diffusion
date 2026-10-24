@@ -4799,6 +4799,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "photocraft-diffusion"
+version = "0.15.1"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "ureq",
+ "url",
+]
+
+[[package]]
 name = "photocraft-doc"
 version = "0.15.1"
 dependencies = [
@@ -4824,6 +4835,7 @@ dependencies = [
  "photocraft-codecs",
  "photocraft-color",
  "photocraft-compose",
+ "photocraft-diffusion",
  "photocraft-doc",
  "photocraft-format",
  "photocraft-geom",
@@ -5059,12 +5071,14 @@ dependencies = [
  "egui_kittest",
  "epaint_default_fonts",
  "flate2",
+ "image",
  "log",
  "photocraft-algo",
  "photocraft-cms",
  "photocraft-codecs",
  "photocraft-color",
  "photocraft-compose",
+ "photocraft-diffusion",
  "photocraft-doc",
  "photocraft-engine",
  "photocraft-format",
