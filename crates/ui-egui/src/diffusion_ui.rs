@@ -267,12 +267,12 @@ pub fn window(app: &mut PhotocraftApp, ctx: &egui::Context) {
     let canvas = app.last_canvas_rect;
     let default_pos = egui::pos2((canvas.right() - PANEL_WIDTH - 20.0).max(canvas.left() + 10.0), canvas.top() + 30.0);
 
-    let runtime_id = egui::Id::new("photocraft-diffusion-runtime");
+    let runtime_id = egui::Id::unique("photocraft-diffusion-runtime");
     let mut runtime: DiffusionRuntime = ctx.data_mut(|d| d.get_temp(runtime_id)).unwrap_or_default();
 
     let mut open = true;
     egui::Window::new(tl!("AI Diffusion"))
-        .id(egui::Id::new("photocraft-ai-diffusion-window"))
+        .id(egui::Id::unique("photocraft-ai-diffusion-window"))
         .title_bar(false)
         .resizable(true)
         .default_width(PANEL_WIDTH)
@@ -362,7 +362,7 @@ fn draw_parameters_tab(app: &mut PhotocraftApp, ui: &mut egui::Ui, t: &Tokens, r
         // Mode selector
         ui.horizontal(|ui| {
             ui.label(tl!("Mode:"));
-            egui::ComboBox::from_id_salt("diffusion-mode-select")
+            craft_ui::ComboBox::from_id_salt("diffusion-mode-select")
                 .selected_text(match app.ui.diffusion.mode {
                     Mode::Generate => tl!("Generate (Text-to-Image)"),
                     Mode::Refine => tl!("Refine (Image-to-Image)"),
@@ -410,7 +410,7 @@ fn draw_parameters_tab(app: &mut PhotocraftApp, ui: &mut egui::Ui, t: &Tokens, r
             ui.horizontal(|ui| {
                 ui.label(tl!("Checkpoint:"));
                 if !runtime.catalog_checkpoints.is_empty() {
-                    egui::ComboBox::from_id_salt("diffusion-ckpt-picker")
+                    craft_ui::ComboBox::from_id_salt("diffusion-ckpt-picker")
                         .selected_text(if app.ui.diffusion.checkpoint.is_empty() { tl!("Select checkpoint…") } else { &app.ui.diffusion.checkpoint })
                         .show_ui(ui, |ui| {
                             for ckpt in &runtime.catalog_checkpoints {
@@ -477,7 +477,7 @@ fn draw_parameters_tab(app: &mut PhotocraftApp, ui: &mut egui::Ui, t: &Tokens, r
             ui.horizontal(|ui| {
                 ui.label(tl!("Sampler:"));
                 if !runtime.catalog_samplers.is_empty() {
-                    egui::ComboBox::from_id_salt("diffusion-sampler-picker").selected_text(&app.ui.diffusion.sampler).show_ui(ui, |ui| {
+                    craft_ui::ComboBox::from_id_salt("diffusion-sampler-picker").selected_text(&app.ui.diffusion.sampler).show_ui(ui, |ui| {
                         for s in &runtime.catalog_samplers {
                             ui.selectable_value(&mut app.ui.diffusion.sampler, s.clone(), s);
                         }
@@ -488,7 +488,7 @@ fn draw_parameters_tab(app: &mut PhotocraftApp, ui: &mut egui::Ui, t: &Tokens, r
 
                 ui.label(tl!("Scheduler:"));
                 if !runtime.catalog_schedulers.is_empty() {
-                    egui::ComboBox::from_id_salt("diffusion-scheduler-picker").selected_text(&app.ui.diffusion.scheduler).show_ui(ui, |ui| {
+                    craft_ui::ComboBox::from_id_salt("diffusion-scheduler-picker").selected_text(&app.ui.diffusion.scheduler).show_ui(ui, |ui| {
                         for s in &runtime.catalog_schedulers {
                             ui.selectable_value(&mut app.ui.diffusion.scheduler, s.clone(), s);
                         }
@@ -522,15 +522,15 @@ fn draw_parameters_tab(app: &mut PhotocraftApp, ui: &mut egui::Ui, t: &Tokens, r
                         }
                     });
                 }
-                if let Some(i) = remove_idx {
-                    if i < app.ui.diffusion.loras.len() {
-                        app.ui.diffusion.loras.remove(i);
-                    }
+                if let Some(i) = remove_idx
+                    && i < app.ui.diffusion.loras.len()
+                {
+                    app.ui.diffusion.loras.remove(i);
                 }
                 if app.ui.diffusion.loras.len() < 16 {
                     ui.horizontal(|ui| {
                         if !runtime.catalog_loras.is_empty() {
-                            egui::ComboBox::from_id_salt("diffusion-add-lora-picker")
+                            craft_ui::ComboBox::from_id_salt("diffusion-add-lora-picker")
                                 .selected_text(if runtime.new_lora_name.is_empty() { tl!("Pick LoRA…") } else { &runtime.new_lora_name })
                                 .show_ui(ui, |ui| {
                                     for l in &runtime.catalog_loras {
@@ -555,7 +555,7 @@ fn draw_parameters_tab(app: &mut PhotocraftApp, ui: &mut egui::Ui, t: &Tokens, r
                 ui.horizontal(|ui| {
                     ui.label(tl!("Upscaler:"));
                     if !runtime.catalog_upscalers.is_empty() {
-                        egui::ComboBox::from_id_salt("diffusion-upscaler-picker")
+                        craft_ui::ComboBox::from_id_salt("diffusion-upscaler-picker")
                             .selected_text(if app.ui.diffusion.upscaler.is_empty() { tl!("Select upscaler…") } else { &app.ui.diffusion.upscaler })
                             .show_ui(ui, |ui| {
                                 for u_name in &runtime.catalog_upscalers {
@@ -832,26 +832,26 @@ fn refresh_catalog(app: &mut PhotocraftApp, runtime: &mut DiffusionRuntime) {
 }
 
 fn refresh_history(app: &mut PhotocraftApp, runtime: &mut DiffusionRuntime) {
-    if let Ok(val) = app.run("ai.diffusion.history", json!({})) {
-        if let Some(arr) = val.get("history").and_then(Value::as_array) {
-            runtime.history = arr
-                .iter()
-                .filter_map(|item| {
-                    Some(DiffusionHistoryEntry {
-                        job: item.get("job")?.as_u64()?,
-                        mode: serde_json::from_value(item.get("mode")?.clone()).ok()?,
-                        prompt: item.get("prompt").and_then(Value::as_str).unwrap_or("").to_string(),
-                        images: item.get("images").and_then(Value::as_u64).unwrap_or(0) as usize,
-                        bytes: item.get("bytes").and_then(Value::as_u64).unwrap_or(0) as usize,
-                        created_ms: item.get("createdMs").and_then(Value::as_f64).unwrap_or(0.0),
-                    })
+    if let Ok(val) = app.run("ai.diffusion.history", json!({}))
+        && let Some(arr) = val.get("history").and_then(Value::as_array)
+    {
+        runtime.history = arr
+            .iter()
+            .filter_map(|item| {
+                Some(DiffusionHistoryEntry {
+                    job: item.get("job")?.as_u64()?,
+                    mode: serde_json::from_value(item.get("mode")?.clone()).ok()?,
+                    prompt: item.get("prompt").and_then(Value::as_str).unwrap_or("").to_string(),
+                    images: item.get("images").and_then(Value::as_u64).unwrap_or(0) as usize,
+                    bytes: item.get("bytes").and_then(Value::as_u64).unwrap_or(0) as usize,
+                    created_ms: item.get("createdMs").and_then(Value::as_f64).unwrap_or(0.0),
                 })
-                .collect();
-            if runtime.selected_preview.is_none() {
-                if let Some(last) = runtime.history.last() {
-                    runtime.selected_preview = Some((last.job, 0));
-                }
-            }
+            })
+            .collect();
+        if runtime.selected_preview.is_none()
+            && let Some(last) = runtime.history.last()
+        {
+            runtime.selected_preview = Some((last.job, 0));
         }
     }
 }
@@ -923,13 +923,15 @@ mod tests {
 
     #[test]
     fn test_diffusion_ui_state_serde_roundtrip() {
-        let mut state = DiffusionUiState::default();
-        state.checkpoint = "v1-5-pruned-emaonly.safetensors".into();
-        state.prompt = "A picturesque mountain lake at sunset".into();
-        state.negative = "ugly, blurry".into();
-        state.steps = 25;
-        state.cfg = 8.5;
-        state.consent = true;
+        let mut state = DiffusionUiState {
+            checkpoint: "v1-5-pruned-emaonly.safetensors".into(),
+            prompt: "A picturesque mountain lake at sunset".into(),
+            negative: "ugly, blurry".into(),
+            steps: 25,
+            cfg: 8.5,
+            consent: true,
+            ..Default::default()
+        };
         state.loras.push(DiffusionLoraUi::new("add_detail", 0.8));
 
         let json = serde_json::to_string(&state).expect("serialize");
@@ -939,14 +941,16 @@ mod tests {
 
     #[test]
     fn test_to_request_validation_and_clamping() {
-        let mut state = DiffusionUiState::default();
-        state.checkpoint = "model.safetensors".into();
-        state.width = 515; // not multiple of 8
-        state.height = 70; // 70 / 8 * 8 = 64
-        state.steps = 500; // clamp to 150
-        state.cfg = 50.0; // clamp to 30.0
-        state.denoise = 2.0; // clamp to 1.0
-        state.batch = 12; // clamp to 8
+        let state = DiffusionUiState {
+            checkpoint: "model.safetensors".into(),
+            width: 515,   // not multiple of 8
+            height: 70,   // 70 / 8 * 8 = 64
+            steps: 500,   // clamp to 150
+            cfg: 50.0,    // clamp to 30.0
+            denoise: 2.0, // clamp to 1.0
+            batch: 12,    // clamp to 8
+            ..Default::default()
+        };
 
         let req = state.to_request().expect("valid request");
         assert_eq!(req.width, 512);
@@ -959,12 +963,14 @@ mod tests {
 
     #[test]
     fn test_to_request_truncates_long_strings_safely() {
-        let mut state = DiffusionUiState::default();
-        state.checkpoint = "m".repeat(2000);
-        state.prompt = "p".repeat(50000);
-        state.negative = "n".repeat(50000);
-        state.sampler = "s".repeat(300);
-        state.scheduler = "c".repeat(300);
+        let state = DiffusionUiState {
+            checkpoint: "m".repeat(2000),
+            prompt: "p".repeat(50000),
+            negative: "n".repeat(50000),
+            sampler: "s".repeat(300),
+            scheduler: "c".repeat(300),
+            ..Default::default()
+        };
 
         let req = state.to_request().expect("safe truncation");
         assert_eq!(req.checkpoint.len(), 1024);
@@ -976,8 +982,7 @@ mod tests {
 
     #[test]
     fn test_to_request_loras_bounded() {
-        let mut state = DiffusionUiState::default();
-        state.checkpoint = "model.safetensors".into();
+        let mut state = DiffusionUiState { checkpoint: "model.safetensors".into(), ..Default::default() };
         for i in 0..25 {
             state.loras.push(DiffusionLoraUi::new(format!("lora_{i}"), 10.0));
         }
@@ -988,9 +993,7 @@ mod tests {
 
     #[test]
     fn test_custom_mode_requires_workflow_json() {
-        let mut state = DiffusionUiState::default();
-        state.mode = Mode::Custom;
-        state.custom_workflow = "".into();
+        let mut state = DiffusionUiState { mode: Mode::Custom, ..Default::default() };
         assert!(state.to_request().is_err());
 
         state.custom_workflow = "not a valid json".into();
@@ -1008,11 +1011,7 @@ mod tests {
 
     #[test]
     fn test_presets_save_load_delete() {
-        let mut state = DiffusionUiState::default();
-        state.checkpoint = "test.safetensors".into();
-        state.prompt = "sample prompt".into();
-        state.steps = 35;
-        state.cfg = 9.0;
+        let mut state = DiffusionUiState { checkpoint: "test.safetensors".into(), prompt: "sample prompt".into(), steps: 35, cfg: 9.0, ..Default::default() };
 
         let preset = DiffusionPreset {
             name: "Anime".into(),
