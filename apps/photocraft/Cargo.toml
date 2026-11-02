@@ -79,7 +79,7 @@ x11rb = { version = "=0.14.0", default-features = false, features = ["image", "r
 # image/png only. Already in Cargo.lock (arboard's wayland-data-control); pinned exactly.
 wl-clipboard-rs = { version = "=0.9.5", default-features = false }
 # Wayland desktop color selection through the existing XDG portal transport.
-zbus = "=6.1.0"
+zbus = "=6.2.0"
 # Caption button glyphs from the desktop's icon theme (`caption_style.rs`): SVG paths only, no
 # text or images. Already in Cargo.lock (photocraft-io); pinned exactly.
 resvg = { version = "=0.49.0", default-features = false }
